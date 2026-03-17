@@ -1,14 +1,15 @@
 import type { MiddlewareHandler } from 'hono'
 import { Hono } from 'hono'
-import type { Binding, Constructor } from '@core/injectable.core.ts'
+import type { Constructor } from '@core/injectable.core.ts'
 
 export type Resolve = <T>(cls: Constructor<T>) => T
 
 export interface IModule {
 	prefix: string
-	bindings: Binding[]
+	providers: Constructor[]
+	controllers: Constructor[]
 	middlewares?: MiddlewareHandler[]
-	routes: (resolve: Resolve) => Hono
+	routes: (router: Hono, resolve: Resolve) => void
 }
 
 export function defineModule(mod: IModule): IModule {
