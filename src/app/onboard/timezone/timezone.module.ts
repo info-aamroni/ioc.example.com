@@ -5,11 +5,8 @@ import { TimezoneService } from '@/app/onboard/timezone/timezone.service.ts'
 
 export const TimezoneModule = defineModule({
 	prefix: '/timezones',
-	bindings: [
-		{ token: TimezoneRepository, eager: true },
-		{ token: TimezoneService, dependencies: [TimezoneRepository], eager: true },
-		{ token: TimezoneController, dependencies: [TimezoneService], eager: true },
-	],
+	providers: [TimezoneService, TimezoneRepository],
+	controllers: [TimezoneController],
 	middlewares: [async (ctx, next) => {
 		ctx.header('x-module-scope', 'timezone')
 		await next()

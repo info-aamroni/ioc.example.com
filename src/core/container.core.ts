@@ -2,6 +2,8 @@ import type { Binding, Constructor } from '@core/injectable.core.ts'
 
 type ResolverFactory<T> = (container: ContainerCore) => T
 
+type ResolverFactory<T> = (container: ContainerCore) => T
+
 class ContainerCore {
 	private readonly singletons = new Map<Constructor, unknown>()
 	private readonly factories = new Map<Constructor, ResolverFactory<unknown>>()
@@ -12,6 +14,8 @@ class ContainerCore {
 		if (this.factories.has(token)) {
 			return this
 		}
+		return this
+	}
 
 		const target = binding.useClass ?? token
 		const dependencies = binding.dependencies ?? []
