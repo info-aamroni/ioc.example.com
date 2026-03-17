@@ -11,25 +11,16 @@ export abstract class ProviderCore {
 
 	private boot(app: Hono, prefix: string): void {
 		const router = new Hono()
-		const modules = this.modules()
 
-		for (const mod of modules) {
-			container.registerMany(mod.bindings)
-		}
-		container.boot()
-
-		for (const mod of modules) {
+		for (const mod of this.modules()) {
 			const moduleRouter = new Hono()
+			container.boot([...mod.providers, ...mod.controllers])
 
 			for (const middleware of mod.middlewares ?? []) {
 				moduleRouter.use('*', middleware)
 			}
 
-			for (const route of mod.routes) {
-				const handlers = [...(route.middlewares ?? []), route.handler((cls) => container.resolve(cls))]
-				moduleRouter.on([route.method.toUpperCase()], route.path, ...(handlers as [any, ...any[]]))
-			}
-
+			mod.routes(moduleRouter, (cls) => container.resolve(cls))
 			router.route(mod.prefix, moduleRouter)
 		}
 
