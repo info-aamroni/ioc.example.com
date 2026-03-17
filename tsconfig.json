@@ -1,7 +1,33 @@
 {
-  "compilerOptions": {
-    "strict": true,
-    "jsx": "react-jsx",
-    "jsxImportSource": "hono/jsx"
-  }
+    "compilerOptions": {
+        "target": "ESNext",
+        "module": "ESNext",
+        "lib": ["ESNext"],
+        "moduleResolution": "Bundler",
+        "allowImportingTsExtensions": true,
+        "experimentalDecorators": true,
+        "emitDecoratorMetadata": true,
+        "noEmit": true,
+        "strict": true,
+        "skipLibCheck": true,
+        "resolveJsonModule": true,
+        "allowSyntheticDefaultImports": true,
+        "esModuleInterop": true,
+        "forceConsistentCasingInFileNames": true,
+        "isolatedModules": true,
+        "baseUrl": ".",
+        "paths": {
+            "@/*": ["src/*"],
+            "@core/*": ["src/core/*"],
+            "@enums/*": ["src/enums/*"],
+            "@http/*": ["src/http/*"],
+            "@routes/*": ["src/routes/*"],
+            "@structs/*": ["src/structs/*"],
+            "@typing/*": ["src/types/*"], // Changed alias to @typing
+            "@config/*": ["src/config/*"]
+        },
+        "types": ["bun-types"]
+    },
+    "include": ["src/**/*"],
+    "exclude": ["node_modules", "dist"]
 }
