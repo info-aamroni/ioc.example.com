@@ -4,12 +4,8 @@ import { TimezoneRepository } from '@/app/onboard/timezone/timezone.repository.t
 export class TimezoneService {
 	constructor(private readonly repository: TimezoneRepository) {}
 
-	async invokeRequest(search: string | null) {
-		const resource = this.repository.processInvokeEndpoint()
-		const incoming = incomingSearchProcessor(search, resource)
-		return {
-			code: 200,
-			data: incoming,
-		}
+	async invokeRequest() {
+		await Promise.resolve() // Simulate async operation
+		return this.repository.processInvokeEndpoint()
 	}
 }
