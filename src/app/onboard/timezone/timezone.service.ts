@@ -2,8 +2,6 @@ import { incomingSearchProcessor } from '@/app/onboard/timezone/timezone.helper.
 import { TimezoneRepository } from '@/app/onboard/timezone/timezone.repository.ts'
 
 export class TimezoneService {
-	static inject = [TimezoneRepository] as const
-
 	constructor(private readonly repository: TimezoneRepository) {}
 
 	async invokeRequest(search: string | null) {

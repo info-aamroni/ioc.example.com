@@ -11,8 +11,30 @@ export const TimezoneModule = defineModule({
 		ctx.header('x-module-scope', 'timezone')
 		await next()
 	}],
-	routes: (router, resolve) => {
-		const ctrl = resolve(TimezoneController)
-		router.get('/', async (ctx) => await ctrl.invoke(ctx))
-	},
+	routes: [
+		{
+			method: 'get',
+			path: '/',
+			middlewares: [async (ctx, next) => {
+				ctx.header('x-route-scope', 'timezone.invoke')
+				await next()
+			}],
+			handler: (resolve) => {
+				const ctrl = resolve(TimezoneController)
+				return async (ctx) => await ctrl.invoke(ctx)
+			},
+		},
+		{
+			method: 'get',
+			path: '/health',
+			middlewares: [async (ctx, next) => {
+				ctx.header('x-route-scope', 'timezone.health')
+				await next()
+			}],
+			handler: (resolve) => {
+				const ctrl = resolve(TimezoneController)
+				return (ctx) => ctrl.health(ctx)
+			},
+		},
+	],
 })

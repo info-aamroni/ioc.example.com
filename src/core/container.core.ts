@@ -1,14 +1,37 @@
-import type { Constructor, InjectableCore } from '@core/injectable.core.ts'
+import type { Binding, Constructor } from '@core/injectable.core.ts'
+
+type ResolverFactory<T> = (container: ContainerCore) => T
 
 type ResolverFactory<T> = (container: ContainerCore) => T
 
 class ContainerCore {
 	private readonly singletons = new Map<Constructor, unknown>()
 	private readonly factories = new Map<Constructor, ResolverFactory<unknown>>()
+	private readonly eagerTokens = new Set<Constructor>()
 
-	registerSingleton<T>(token: Constructor<T>, factory?: ResolverFactory<T>): this {
-		if (!this.factories.has(token)) {
-			this.factories.set(token, factory ?? ((container) => container.instantiate(token)))
+	register<T>(binding: Binding<T>): this {
+		const token = binding.token
+		if (this.factories.has(token)) {
+			return this
+		}
+		return this
+	}
+
+		const target = binding.useClass ?? token
+		const dependencies = binding.dependencies ?? []
+
+		this.factories.set(token, (container) => new target(...dependencies.map((dependency) => container.resolve(dependency))))
+
+		if (binding.eager) {
+			this.eagerTokens.add(token)
+		}
+
+		return this
+	}
+
+	registerMany(bindings: readonly Binding[]): this {
+		for (const binding of bindings) {
+			this.register(binding)
 		}
 		return this
 	}
@@ -23,33 +46,26 @@ class ContainerCore {
 			return this.singletons.get(token) as T
 		}
 
-		const factory = this.factories.get(token) ?? ((container: ContainerCore) => container.instantiate(token))
+		const factory = this.factories.get(token)
+		if (!factory) {
+			throw new Error(`Container binding not found for token: ${token.name || 'AnonymousClass'}`)
+		}
+
 		const instance = factory(this) as T
 		this.singletons.set(token, instance)
 		return instance
 	}
 
-	prebind(classes: readonly Constructor[]): void {
-		for (const cls of classes) {
-			this.registerSingleton(cls)
-		}
-	}
-
-	boot(classes: readonly Constructor[]): void {
-		this.prebind(classes)
-		for (const cls of classes) {
-			this.resolve(cls)
+	boot(): void {
+		for (const token of this.eagerTokens) {
+			this.resolve(token)
 		}
 	}
 
 	reset(): void {
 		this.singletons.clear()
 		this.factories.clear()
-	}
-
-	private instantiate<T>(token: Constructor<T>): T {
-		const dependencies: readonly Constructor[] = (token as unknown as InjectableCore).inject ?? []
-		return new token(...dependencies.map((dependency) => this.resolve(dependency)))
+		this.eagerTokens.clear()
 	}
 }
 
