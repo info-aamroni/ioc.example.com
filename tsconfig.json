@@ -5,8 +5,8 @@
         "lib": ["ESNext"],
         "moduleResolution": "Bundler",
         "allowImportingTsExtensions": true,
-        "experimentalDecorators": true,
-        "emitDecoratorMetadata": true,
+        "experimentalDecorators": false,
+        "emitDecoratorMetadata": false,
         "noEmit": true,
         "strict": true,
         "skipLibCheck": true,
@@ -23,7 +23,7 @@
             "@http/*": ["src/http/*"],
             "@routes/*": ["src/routes/*"],
             "@structs/*": ["src/structs/*"],
-            "@typing/*": ["src/types/*"], // Changed alias to @typing
+            "@typing/*": ["src/types/*"],
             "@config/*": ["src/config/*"]
         },
         "types": ["bun-types"]
