@@ -23,6 +23,6 @@ export class TimezoneController {
 	async invoke(ctx: Context) {
 		const resolved: string | null = ctx.req.query().search
 		const response = await this.timezoneService.invokeRequest(resolved)
-		return ctx.json(response.data, response.code)
+		return ctx.json(response.data)
 	}
 }
