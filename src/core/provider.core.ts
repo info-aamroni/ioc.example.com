@@ -1,44 +1,36 @@
-import { OpenAPIHono } from '@hono/zod-openapi'
+import { Hono } from 'hono'
 import { container } from './container.core.ts'
 import type { IModule } from './module.core.ts'
-import { validationHook } from '@/utils/extra/logger.util.ts'
 
 export abstract class ProviderCore {
-	/**
-	 * Define all modules this provider is responsible for.
-	 * The parent reads this automatically — no super() call needed.
-	 *
-	 * @example
-	 * export class OnboardProvider extends ProviderCore {
-	 *   modules() {
-	 *     return [LanguageModule, TimezoneModule]
-	 *   }
-	 * }
-	 *
-	 * // index.ts
-	 * OnboardProvider.register(app, '/:version')
-	 */
 	protected abstract modules(): IModule[]
 
-	/**
-	 * Static entry point — instantiates the subclass, reads its modules(),
-	 * and mounts everything onto the app.
-	 */
-	static register(this: new () => ProviderCore, app: OpenAPIHono, prefix = '/'): void {
+	static register(this: new () => ProviderCore, app: Hono, prefix = '/'): void {
 		new this().boot(app, prefix)
 	}
 
-	/**
-	 * Register all modules and attach the resulting router to the parent app
-	 */
-	private boot(app: OpenAPIHono, prefix: string): void {
-		const module = this.modules()
-		const router = new OpenAPIHono({ defaultHook: validationHook })
+	private boot(app: Hono, prefix: string): void {
+		const router = new Hono()
+		const modules = this.modules()
 
-		for (const each of module) {
-			container.boot([...each.providers, ...each.controllers])
-			const resolve = each.routes((cls) => container.resolve(cls))
-			router.route('/', resolve)
+		for (const mod of modules) {
+			container.registerMany(mod.bindings)
+		}
+		container.boot()
+
+		for (const mod of modules) {
+			const moduleRouter = new Hono()
+
+			for (const middleware of mod.middlewares ?? []) {
+				moduleRouter.use('*', middleware)
+			}
+
+			for (const route of mod.routes) {
+				const handlers = [...(route.middlewares ?? []), route.handler((cls) => container.resolve(cls))]
+				moduleRouter.on([route.method.toUpperCase()], route.path, ...(handlers as [any, ...any[]]))
+			}
+
+			router.route(mod.prefix, moduleRouter)
 		}
 
 		app.route(prefix, router)

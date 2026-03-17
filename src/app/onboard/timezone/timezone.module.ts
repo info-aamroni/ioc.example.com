@@ -1,25 +1,43 @@
-import type { IModule, Resolve } from '@core/module.core.ts'
 import { defineModule } from '@core/module.core.ts'
-import { OpenAPIHono } from '@hono/zod-openapi'
-import type { Context, Env } from 'hono'
 import { TimezoneController } from '@/app/onboard/timezone/timezone.controller.ts'
-import { InvokeRouteDocument } from '@/app/onboard/timezone/timezone.document.ts'
 import { TimezoneRepository } from '@/app/onboard/timezone/timezone.repository.ts'
 import { TimezoneService } from '@/app/onboard/timezone/timezone.service.ts'
-import { validationHook } from '@/utils/extra/logger.util.ts'
 
-export const TimezoneModule: IModule = defineModule({
-	providers: [TimezoneService, TimezoneRepository],
-	controllers: [TimezoneController],
-	routes: (resolve: Resolve) => {
-		const ctrl: TimezoneController = resolve(TimezoneController)
-		const hono: OpenAPIHono = new OpenAPIHono<Env>({
-			defaultHook: validationHook,
-		})
-
-		// middleware scope
-
-		hono.openapi(InvokeRouteDocument, async (ctx: Context) => await ctrl.invoke(ctx))
-		return hono
-	},
+export const TimezoneModule = defineModule({
+	prefix: '/timezones',
+	bindings: [
+		{ token: TimezoneRepository, eager: true },
+		{ token: TimezoneService, dependencies: [TimezoneRepository], eager: true },
+		{ token: TimezoneController, dependencies: [TimezoneService], eager: true },
+	],
+	middlewares: [async (ctx, next) => {
+		ctx.header('x-module-scope', 'timezone')
+		await next()
+	}],
+	routes: [
+		{
+			method: 'get',
+			path: '/',
+			middlewares: [async (ctx, next) => {
+				ctx.header('x-route-scope', 'timezone.invoke')
+				await next()
+			}],
+			handler: (resolve) => {
+				const ctrl = resolve(TimezoneController)
+				return async (ctx) => await ctrl.invoke(ctx)
+			},
+		},
+		{
+			method: 'get',
+			path: '/health',
+			middlewares: [async (ctx, next) => {
+				ctx.header('x-route-scope', 'timezone.health')
+				await next()
+			}],
+			handler: (resolve) => {
+				const ctrl = resolve(TimezoneController)
+				return (ctx) => ctrl.health(ctx)
+			},
+		},
+	],
 })

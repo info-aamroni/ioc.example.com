@@ -1,9 +1,5 @@
-import { Hono } from 'hono'
+import { bootstrapApplication } from '@/bootstrap.ts'
 
-const app = new Hono()
-
-app.get('/', (c) => {
-  return c.text('Hello Hono!')
-})
+const app = bootstrapApplication()
 
 export default app
