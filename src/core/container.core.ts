@@ -1,4 +1,4 @@
-import type { Constructor, InjectableCore } from '@core/injectable.core.ts'
+import type { Binding, Constructor } from '@core/injectable.core.ts'
 
 type ResolverFactory<T> = (container: ContainerCore) => T
 
